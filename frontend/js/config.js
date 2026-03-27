@@ -3,7 +3,7 @@ const API_CONFIG = {
     // Change this to your deployed backend URL in production
     BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:5000'
-        : 'https://your-backend.onrender.com', // Update with your actual backend URL
+        : '', // Same-origin on Vercel - frontend and backend share the same domain
 
     ENDPOINTS: {
         AUTH_SIGNUP: '/auth/signup',
