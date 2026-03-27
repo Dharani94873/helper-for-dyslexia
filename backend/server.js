@@ -97,22 +97,6 @@ app.use('/preferences', preferencesRoutes);
 app.use('/documents', documentsRoutes);
 app.use('/analytics', analyticsRoutes);
 
-// Root endpoint
-app.get('/', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Accessibility Helper for Dyslexia API',
-        version: '1.0.0',
-        endpoints: {
-            auth: '/auth',
-            user: '/user',
-            preferences: '/preferences',
-            documents: '/documents',
-            analytics: '/analytics',
-            health: '/health'
-        }
-    });
-});
 
 // Serve frontend static files (for Vercel deployment)
 app.use(express.static(path.join(__dirname, '../frontend')));
