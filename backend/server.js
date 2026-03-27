@@ -101,6 +101,11 @@ app.use('/analytics', analyticsRoutes);
 // Serve frontend static files (for Vercel deployment)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// SPA/Fallback: ensure / always serves the frontend
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+});
+
 // Serve index.html for any unmatched route (SPA fallback)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
