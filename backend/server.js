@@ -104,38 +104,40 @@ app.use((req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Start server
-const PORT = config.port;
-const server = app.listen(PORT, () => {
-    logger.info(`Server running in ${config.nodeEnv} mode on port ${PORT}`);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-    logger.info('SIGTERM signal received: closing HTTP server');
-    server.close(async () => {
-        logger.info('HTTP server closed');
-        await closeDatabase();
-        process.exit(0);
+// Only start the server when running locally (not on Vercel)
+if (process.env.VERCEL !== '1') {
+    const PORT = config.port;
+    const server = app.listen(PORT, () => {
+        logger.info(`Server running in ${config.nodeEnv} mode on port ${PORT}`);
     });
-});
 
-process.on('SIGINT', async () => {
-    logger.info('SIGINT signal received: closing HTTP server');
-    server.close(async () => {
-        logger.info('HTTP server closed');
-        await closeDatabase();
-        process.exit(0);
+    // Graceful shutdown
+    process.on('SIGTERM', async () => {
+        logger.info('SIGTERM signal received: closing HTTP server');
+        server.close(async () => {
+            logger.info('HTTP server closed');
+            await closeDatabase();
+            process.exit(0);
+        });
     });
-});
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-    logger.error('Unhandled Promise Rejection:', err);
-    server.close(async () => {
-        await closeDatabase();
-        process.exit(1);
+    process.on('SIGINT', async () => {
+        logger.info('SIGINT signal received: closing HTTP server');
+        server.close(async () => {
+            logger.info('HTTP server closed');
+            await closeDatabase();
+            process.exit(0);
+        });
     });
-});
+
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (err) => {
+        logger.error('Unhandled Promise Rejection:', err);
+        server.close(async () => {
+            await closeDatabase();
+            process.exit(1);
+        });
+    });
+}
 
 module.exports = app;
