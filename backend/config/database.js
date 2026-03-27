@@ -34,7 +34,8 @@ const connectDatabase = async () => {
 
     } catch (error) {
         logger.error('MongoDB connection failed:', error.message);
-        process.exit(1);
+        // Do NOT call process.exit(1) - this crashes Vercel serverless functions
+        // The app will continue; DB-dependent routes will fail gracefully
     }
 };
 

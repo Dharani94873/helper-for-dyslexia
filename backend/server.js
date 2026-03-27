@@ -19,8 +19,28 @@ const analyticsRoutes = require('./routes/analytics');
 // Initialize Express app
 const app = express();
 
-// Connect to database
-connectDatabase();
+// Connect to database lazily (per-request caching) - required for Vercel serverless
+const dbConnect = async () => {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState >= 1) return; // Already connected
+    await connectDatabase();
+};
+
+// Middleware: ensure DB is connected before processing API routes
+app.use(async (req, res, next) => {
+    // Only connect for API routes, not static files
+    if (req.path.startsWith('/auth') || req.path.startsWith('/user') ||
+        req.path.startsWith('/preferences') || req.path.startsWith('/documents') ||
+        req.path.startsWith('/analytics')) {
+        try {
+            await dbConnect();
+        } catch (err) {
+            // Log but don't block the request
+            logger.error('DB connection middleware error:', err.message);
+        }
+    }
+    next();
+});
 
 // Security middleware
 app.use(helmet());
