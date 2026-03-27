@@ -3,10 +3,16 @@ const path = require('path');
 const fs = require('fs');
 const config = require('../config/config');
 
-// Ensure upload directory exists
-const uploadDir = path.resolve(config.uploadDir);
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+// Use /tmp on Vercel (read-only filesystem), local uploads dir otherwise
+const uploadDir = process.env.VERCEL
+    ? '/tmp/uploads'
+    : path.resolve(config.uploadDir);
+
+// Lazily create the upload directory when needed (not at module load)
+function ensureUploadDir() {
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
 }
 
 /**
@@ -14,6 +20,7 @@ if (!fs.existsSync(uploadDir)) {
  */
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
+        ensureUploadDir(); // Create lazily, not at module load
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {

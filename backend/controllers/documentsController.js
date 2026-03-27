@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
-const pdfParse = require('pdf-parse');
+// NOTE: pdf-parse is required lazily inside uploadDocument() to avoid
+// serverless crash (pdf-parse reads test files on module load)
 const Document = require('../models/Document');
 const History = require('../models/History');
 const { deleteFile } = require('../utils/fileHandler');
@@ -26,6 +27,7 @@ exports.uploadDocument = async (req, res, next) => {
 
         // Extract text based on file type
         if (file.mimetype === 'application/pdf') {
+            const pdfParse = require('pdf-parse'); // Lazy require - avoids serverless crash
             const dataBuffer = await fs.readFile(file.path);
             const pdfData = await pdfParse(dataBuffer);
             rawText = pdfData.text;
