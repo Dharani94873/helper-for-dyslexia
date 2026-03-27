@@ -1,0 +1,796 @@
+DYSLEXIA HELPER - MAIN PROJECT SOURCE CODE
+==========================================
+
+FILE 1: backend/server.js  (Backend Entry Point)
+
+======================================================================
+const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const { connectDatabase, closeDatabase } = require('./config/database');
+const config = require('./config/config');
+const logger = require('./utils/logger');
+const errorHandler = require('./middleware/errorHandler');
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+const preferencesRoutes = require('./routes/preferences');
+const documentsRoutes = require('./routes/documents');
+const analyticsRoutes = require('./routes/analytics');
+
+// Initialize Express app
+const app = express();
+
+// Connect to database
+connectDatabase();
+
+// Security middleware
+app.use(helmet());
+
+// CORS configuration
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+
+        if (config.allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
+
+// Body parser
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Logging
+if (config.nodeEnv === 'development') {
+    app.use(morgan('dev'));
+} else {
+    app.use(morgan('combined'));
+}
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: config.rateLimitWindowMs,
+    max: config.rateLimitMaxRequests,
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use(limiter);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'Server is running',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// API routes
+app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
+app.use('/preferences', preferencesRoutes);
+app.use('/documents', documentsRoutes);
+app.use('/analytics', analyticsRoutes);
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Accessibility Helper for Dyslexia API',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/auth',
+            user: '/user',
+            preferences: '/preferences',
+            documents: '/documents',
+            analytics: '/analytics',
+            health: '/health'
+        }
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
+    });
+});
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+// Start server
+const PORT = config.port;
+const server = app.listen(PORT, () => {
+    logger.info(`Server running in ${config.nodeEnv} mode on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    logger.info('SIGTERM signal received: closing HTTP server');
+    server.close(async () => {
+        logger.info('HTTP server closed');
+        await closeDatabase();
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', async () => {
+    logger.info('SIGINT signal received: closing HTTP server');
+    server.close(async () => {
+        logger.info('HTTP server closed');
+        await closeDatabase();
+        process.exit(0);
+    });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+    logger.error('Unhandled Promise Rejection:', err);
+    server.close(async () => {
+        await closeDatabase();
+        process.exit(1);
+    });
+});
+
+module.exports = app;
+
+======================================================================
+
+FILE 2: frontend/js/app.js  (Frontend Application Logic)
+
+======================================================================
+/**
+ * Main Application Bootstrap
+ * Coordinates all modules and initializes the application
+ */
+
+(function () {
+    'use strict';
+
+    // Application state
+    const App = {
+        initialized: false,
+        currentDocumentId: null,
+
+        /**
+         * Initialize application
+         */
+        init() {
+            if (this.initialized) return;
+
+            console.log('Initializing Dyslexia Helper...');
+
+            // Initialize modules
+            UI.init();
+            TTS.init();
+            PDFExtractor.init();
+
+            // Setup app-level event listeners
+            this.setupEventListeners();
+
+            // Check authentication
+            this.checkAuth();
+
+            // Load document if specified
+            this.loadCurrentDocument();
+
+            // Add keyboard shortcuts
+            this.setupKeyboardShortcuts();
+
+            this.initialized = true;
+            console.log('Application initialized successfully');
+        },
+
+        /**
+         * Setup event listeners
+         */
+        setupEventListeners() {
+            // Paste button and modal
+            const pasteBtn = document.getElementById('pasteBtn');
+            const confirmPaste = document.getElementById('confirmPaste');
+
+            if (pasteBtn) {
+                pasteBtn.addEventListener('click', () => {
+                    const modal = new bootstrap.Modal(document.getElementById('pasteModal'));
+                    modal.show();
+                });
+            }
+
+            if (confirmPaste) {
+                confirmPaste.addEventListener('click', async () => {
+                    const text = document.getElementById('pastedText').value;
+                    const title = document.getElementById('pastedTitle').value || 'Pasted Text';
+
+                    if (text.trim()) {
+                        UI.loadText(text, title);
+
+                        // Save to server if logged in
+                        if (Storage.getToken()) {
+                            try {
+                                await API.pasteDocument(text, title);
+                                UI.showToast('Success', 'Text saved to your account', 'success');
+                            } catch (error) {
+                                console.error('Failed to save pasted text:', error);
+                            }
+                        }
+
+                        // Close modal
+                        bootstrap.Modal.getInstance(document.getElementById('pasteModal')).hide();
+                        document.getElementById('pastedText').value = '';
+                        document.getElementById('pastedTitle').value = '';
+                    }
+                });
+            }
+
+            // TTS controls
+            const ttsPlay = document.getElementById('ttsPlay');
+            const ttsPause = document.getElementById('ttsPause');
+            const ttsStop = document.getElementById('ttsStop');
+            const ttsStatus = document.getElementById('ttsStatus');
+
+            if (ttsPlay) {
+                ttsPlay.addEventListener('click', () => {
+                    const text = UI.currentText;
+
+                    if (!text) {
+                        UI.showToast('Warning', 'No text to read', 'warning');
+                        return;
+                    }
+
+                    const started = TTS.play(text,
+                        (wordIndex, word) => {
+                            UI.highlightWord(wordIndex);
+                            ttsStatus.textContent = `Reading: ${word}`;
+                        },
+                        () => {
+                            UI.clearHighlight();
+                            ttsStatus.textContent = 'Finished';
+                            ttsPause.disabled = true;
+                            ttsStop.disabled = true;
+                        }
+                    );
+
+                    if (started) {
+                        ttsStatus.textContent = 'Reading...';
+                        ttsPause.disabled = false;
+                        ttsStop.disabled = false;
+                    }
+                });
+            }
+
+            if (ttsPause) {
+                ttsPause.addEventListener('click', () => {
+                    const status = TTS.getStatus();
+
+                    if (status.isPaused) {
+                        TTS.resume();
+                        ttsStatus.textContent = 'Reading...';
+                        ttsPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                    } else {
+                        TTS.pause();
+                        ttsStatus.textContent = 'Paused';
+                        ttsPause.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    }
+                });
+            }
+
+            if (ttsStop) {
+                ttsStop.addEventListener('click', () => {
+                    TTS.stop();
+                    UI.clearHighlight();
+                    ttsStatus.textContent = 'Stopped';
+                    ttsPause.disabled = true;
+                    ttsStop.disabled = true;
+                    ttsPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                });
+            }
+
+            // Logout button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.logout();
+                });
+            }
+        },
+
+        /**
+         * Setup keyboard shortcuts
+         */
+        setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Spacebar: Play/Pause TTS (when not in input field)
+                if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+                    e.preventDefault();
+                    const ttsPlay = document.getElementById('ttsPlay');
+                    const ttsPause = document.getElementById('ttsPause');
+
+                    if (!ttsPlay.disabled) {
+                        const status = TTS.getStatus();
+                        if (status.isPlaying) {
+                            ttsPause.click();
+                        } else {
+                            ttsPlay.click();
+                        }
+                    }
+                }
+
+                // Escape: Stop TTS or exit distraction-free mode
+                if (e.code === 'Escape') {
+                    const status = TTS.getStatus();
+                    if (status.isPlaying) {
+                        document.getElementById('ttsStop').click();
+                    } else if (document.getElementById('distractionFree').checked) {
+                        document.getElementById('distractionFree').click();
+                    }
+                }
+
+                // Ctrl/Cmd + S: Save preferences
+                if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') {
+                    e.preventDefault();
+                    const saveBtn = document.getElementById('savePrefsBtn');
+                    if (!saveBtn.disabled) {
+                        saveBtn.click();
+                    }
+                }
+            });
+        },
+
+        /**
+         * Check authentication status
+         */
+        checkAuth() {
+            const token = Storage.getToken();
+            const user = Storage.getUser();
+
+            const loginLink = document.getElementById('loginLink');
+            const logoutLink = document.getElementById('logoutLink');
+            const dashboardLink = document.getElementById('dashboardLink');
+            const savePrefsBtn = document.getElementById('savePrefsBtn');
+
+            if (token && user) {
+                // User is logged in
+                if (loginLink) loginLink.style.display = 'none';
+                if (logoutLink) logoutLink.style.display = 'block';
+                if (dashboardLink) dashboardLink.style.display = 'block';
+                if (savePrefsBtn) savePrefsBtn.disabled = false;
+            } else {
+                // User is not logged in
+                if (loginLink) loginLink.style.display = 'block';
+                if (logoutLink) logoutLink.style.display = 'none';
+                if (dashboardLink) dashboardLink.style.display = 'none';
+                if (savePrefsBtn) savePrefsBtn.disabled = true;
+            }
+        },
+
+        /**
+         * Load current document if specified
+         */
+        async loadCurrentDocument() {
+            const documentId = Storage.getCurrentDocument();
+
+            if (!documentId) return;
+
+            try {
+                // Try to get from cache first
+                let document = Storage.getCachedDocument(documentId);
+
+                // If not in cache, fetch from server
+                if (!document && Storage.getToken()) {
+                    const result = await API.getDocument(documentId);
+                    if (result.success) {
+                        document = result.data.document;
+                    }
+                }
+
+                if (document) {
+                    UI.loadText(document.rawText, document.title);
+                    UI.showToast('Info', `Loaded: ${document.title}`, 'info');
+                }
+
+                // Clear the current document marker
+                Storage.clearCurrentDocument();
+            } catch (error) {
+                console.error('Failed to load document:', error);
+                UI.showToast('Error', 'Failed to load document', 'danger');
+                Storage.clearCurrentDocument();
+            }
+        },
+
+        /**
+         * Logout user
+         */
+        logout() {
+            Storage.clearAuth();
+            UI.showToast('Success', 'Logged out successfully', 'success');
+
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        }
+    };
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    } else {
+        App.init();
+    }
+
+    // Export for debugging
+    window.DyslexiaHelperApp = App;
+
+})();
+
+======================================================================
+
+FILE 3: frontend/index.html  (Main Landing Page)
+
+======================================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Accessibility Helper for Dyslexia - Read with ease. A smart reading tool with customizable fonts, text-to-speech, and dyslexia-friendly features.">
+  <title>Dyslexia Helper - Read with Ease</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- Inter Font -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root{--primary:#4f6ef7;--primary-dark:#3a56d4;--primary-light:#eef1ff;--accent:#06c090;--accent-dark:#04a07a;--white:#fff;--bg:#f5f7ff;--surface:#fff;--border:#e8eaf0;--text-primary:#1a1d2e;--text-secondary:#5a6178;--text-muted:#9299b2;--shadow-sm:0 2px 8px rgba(0,0,0,.07);--shadow-md:0 4px 20px rgba(0,0,0,.09);--shadow-lg:0 8px 40px rgba(0,0,0,.13);--radius-sm:8px;--radius-md:12px;--radius-xl:24px;--ease:0.22s cubic-bezier(0.4,0,0.2,1);}
+    *,*::before,*::after{box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+    /* ?? Navbar ?? */
+    .hp-nav{background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.75rem 2rem;position:sticky;top:0;z-index:1000;transition:box-shadow var(--ease);}
+    .hp-nav.scrolled{box-shadow:0 2px 20px rgba(79,110,247,.1);}
+    .hp-nav .navbar-brand{font-weight:800;font-size:1.2rem;color:var(--primary)!important;letter-spacing:-0.4px;}
+    .hp-nav .navbar-brand i{margin-right:.35rem;}
+    .hp-nav .nav-link{color:var(--text-secondary)!important;font-weight:500;font-size:.88rem;padding:.4rem .85rem!important;border-radius:var(--radius-sm);transition:all var(--ease);}
+    .hp-nav .nav-link:hover{color:var(--primary)!important;background:var(--primary-light);}
+    .hp-nav .btn-nav-login{color:var(--primary)!important;border:1.5px solid var(--primary)!important;background:transparent;border-radius:var(--radius-sm)!important;font-weight:600;font-size:.85rem;padding:.38rem 1rem!important;}
+    .hp-nav .btn-nav-login:hover{background:var(--primary-light)!important;}
+    .hp-nav .btn-nav-signup{background:var(--primary)!important;color:#fff!important;border:none!important;border-radius:var(--radius-sm)!important;font-weight:600;font-size:.85rem;padding:.38rem 1.1rem!important;box-shadow:0 2px 8px rgba(79,110,247,.3);transition:all var(--ease);}
+    .hp-nav .btn-nav-signup:hover{background:var(--primary-dark)!important;box-shadow:0 4px 14px rgba(79,110,247,.4);transform:translateY(-1px);}
+    .navbar-toggler{border:none!important;} .navbar-toggler:focus{box-shadow:none!important;}
+
+    /* ?? Hero ?? */
+    .hero{min-height:92vh;display:flex;align-items:center;background:linear-gradient(160deg,#f0f3ff 0%,#ffffff 50%,#e6faf5 100%);position:relative;overflow:hidden;padding:4rem 0 5rem;}
+    .hero::before{content:'';position:absolute;top:-120px;right:-120px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(79,110,247,.12) 0%,transparent 70%);pointer-events:none;}
+    .hero::after{content:'';position:absolute;bottom:-80px;left:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(6,192,144,.1) 0%,transparent 70%);pointer-events:none;}
+    .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary-light);color:var(--primary);border-radius:999px;padding:.35rem 1rem;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:1.5rem;}
+    .hero h1{font-size:clamp(2.4rem,5vw,3.6rem);font-weight:800;line-height:1.15;letter-spacing:-1.5px;color:var(--text-primary);margin-bottom:1.25rem;}
+    .hero h1 .highlight{color:var(--primary);position:relative;}
+    .hero h1 .highlight::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:2px;opacity:.6;}
+    .hero p.lead{font-size:1.1rem;color:var(--text-secondary);line-height:1.75;max-width:520px;margin-bottom:2.25rem;font-weight:400;}
+    .btn-hero-primary{background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-weight:700;font-size:1rem;padding:.78rem 2rem;box-shadow:0 4px 18px rgba(79,110,247,.35);transition:all var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;}
+    .btn-hero-primary:hover{background:var(--primary-dark);box-shadow:0 6px 24px rgba(79,110,247,.45);transform:translateY(-2px);color:#fff;}
+    .btn-hero-secondary{background:transparent;color:var(--text-primary);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-weight:600;font-size:1rem;padding:.75rem 1.75rem;transition:all var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;}
+    .btn-hero-secondary:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+    .hero-visual{position:relative;}
+    .hero-card{background:#fff;border-radius:16px;box-shadow:0 8px 48px rgba(79,110,247,.15);padding:1.75rem;border:1px solid var(--border);max-width:400px;margin:0 auto;}
+    .hero-card .mock-bar{height:10px;border-radius:6px;background:var(--primary-light);margin-bottom:.6rem;}
+    .hero-card .mock-bar.short{width:60%;}
+    .hero-card .mock-bar.shorter{width:45%;}
+    .hero-card .mock-text{font-size:.82rem;line-height:1.8;color:var(--text-secondary);margin-top:1rem;}
+    .hero-card .mock-text span{background:rgba(79,110,247,.15);border-radius:3px;padding:0 2px;}
+    .hero-card-label{background:var(--primary);color:#fff;border-radius:var(--radius-sm);font-size:.72rem;font-weight:700;padding:.25rem .65rem;display:inline-block;margin-bottom:1rem;letter-spacing:.04em;}
+    .floating-badge{position:absolute;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);padding:.6rem 1rem;display:flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--text-primary);border:1px solid var(--border);animation:float 3s ease-in-out infinite;}
+    .floating-badge.b1{top:-20px;right:-30px;animation-delay:0s;}
+    .floating-badge.b2{bottom:30px;left:-30px;animation-delay:1.5s;}
+    .floating-badge .badge-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;}
+    @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+
+    /* ?? Stats ?? */
+    .stats-section{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.25rem 0;}
+    .stat-item{text-align:center;}
+    .stat-item .stat-num{font-size:1.8rem;font-weight:800;color:var(--primary);letter-spacing:-1px;}
+    .stat-item .stat-label{font-size:.82rem;color:var(--text-muted);font-weight:500;margin-top:.2rem;}
+
+    /* ?? Features ?? */
+    .features-section{padding:5rem 0;background:#fff;}
+    .section-badge{display:inline-block;background:var(--primary-light);color:var(--primary);border-radius:999px;padding:.3rem .9rem;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:1rem;}
+    .section-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:var(--text-primary);letter-spacing:-0.8px;margin-bottom:.75rem;}
+    .section-sub{font-size:1rem;color:var(--text-secondary);max-width:480px;margin:0 auto 3rem;}
+    .feature-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.75rem;transition:all var(--ease);height:100%;}
+    .feature-card:hover{border-color:var(--primary);box-shadow:0 8px 32px rgba(79,110,247,.12);transform:translateY(-4px);}
+    .feature-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.1rem;}
+    .feature-icon.purple{background:#f0eeff;color:#7c5cfc;}
+    .feature-icon.green{background:#e6faf5;color:var(--accent);}
+    .feature-icon.blue{background:#e8f4ff;color:#3ab0e8;}
+    .feature-icon.orange{background:#fff4e6;color:#f59e0b;}
+    .feature-icon.pink{background:#fff0f5;color:#e8619d;}
+    .feature-icon.teal{background:#e6f7f7;color:#0d9488;}
+    .feature-card h5{font-size:.98rem;font-weight:700;color:var(--text-primary);margin-bottom:.5rem;}
+    .feature-card p{font-size:.85rem;color:var(--text-secondary);line-height:1.7;margin:0;}
+
+    /* ?? CTA ?? */
+    .cta-section{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);padding:5rem 0;text-align:center;position:relative;overflow:hidden;}
+    .cta-section::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:600px;height:600px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
+    .cta-section h2{font-size:clamp(1.8rem,3vw,2.4rem);font-weight:800;color:#fff;letter-spacing:-0.8px;margin-bottom:1rem;}
+    .cta-section p{color:rgba(255,255,255,.82);font-size:1rem;margin-bottom:2.25rem;}
+    .btn-cta-white{background:#fff;color:var(--primary);border:none;border-radius:var(--radius-sm);font-weight:700;padding:.78rem 2rem;font-size:1rem;transition:all var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 4px 18px rgba(0,0,0,.15);}
+    .btn-cta-white:hover{background:#f0f3ff;transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.2);color:var(--primary);}
+    .btn-cta-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:var(--radius-sm);font-weight:600;padding:.75rem 1.75rem;font-size:1rem;transition:all var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;}
+    .btn-cta-outline:hover{border-color:#fff;background:rgba(255,255,255,.1);color:#fff;}
+
+    /* ?? Footer ?? */
+    .footer{background:#fafbff;border-top:1px solid var(--border);padding:2rem 0;text-align:center;}
+    .footer p{font-size:.82rem;color:var(--text-muted);margin:0;}
+    .footer a{color:var(--primary);text-decoration:none;}
+    .footer a:hover{text-decoration:underline;}
+
+    /* ?? Responsive ?? */
+    @media(max-width:768px){
+      .hero{padding:3rem 0 4rem;min-height:auto;}
+      .hero h1{letter-spacing:-0.8px;}
+      .floating-badge{display:none;}
+      .hero-visual{margin-top:2.5rem;}
+      .btn-hero-primary,.btn-hero-secondary{width:100%;justify-content:center;}
+      .cta-section .d-flex{flex-direction:column;align-items:center;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg hp-nav" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">
+      <i class="bi bi-book-half"></i>Dyslexia Helper
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navContent">
+      <ul class="navbar-nav me-auto ms-3">
+        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+        <li class="nav-item"><a class="nav-link" href="reader.html">Reader</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <a href="login.html" class="btn btn-nav-login">Login</a>
+        <a href="signup.html" class="btn btn-nav-signup">Sign Up Free</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-badge">
+          <i class="bi bi-stars"></i> Designed for Dyslexia
+        </div>
+        <h1>
+          Read Smarter,<br>
+          <span class="highlight">Not Harder</span>
+        </h1>
+        <p class="lead">
+          A powerful reading assistant that adapts to you. Customise fonts, spacing, overlays and
+          listen to any text ? making reading comfortable and accessible for everyone.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="signup.html" class="btn-hero-primary">
+            <i class="bi bi-person-plus-fill"></i> Get Started Free
+          </a>
+          <a href="reader.html" class="btn-hero-secondary">
+            <i class="bi bi-play-circle"></i> Try Without Login
+          </a>
+        </div>
+        <p class="mt-3" style="font-size:.8rem;color:var(--text-muted);">
+          <i class="bi bi-shield-check me-1" style="color:var(--accent);"></i>
+          Free to use &nbsp;?&nbsp; No card required &nbsp;?&nbsp; Works on all devices
+        </p>
+      </div>
+      <div class="col-lg-6 hero-visual">
+        <div style="position:relative;padding:1rem;">
+          <div class="hero-card">
+            <div class="hero-card-label">READER &nbsp;?&nbsp; LIVE PREVIEW</div>
+            <div class="mock-bar"></div>
+            <div class="mock-bar short"></div>
+            <div class="mock-bar shorter"></div>
+            <div class="mock-text">
+              Dyslexia is a learning difference that affects
+              <span>reading</span>, <span>writing</span>, and
+              <span>spelling</span>. With the right tools,
+              every reader can thrive and enjoy text at their own pace.
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <span class="badge rounded-pill" style="background:var(--primary-light);color:var(--primary);font-size:.72rem;padding:.35rem .75rem;font-weight:600;">OpenDyslexic Font</span>
+              <span class="badge rounded-pill" style="background:#e6faf5;color:var(--accent);font-size:.72rem;padding:.35rem .75rem;font-weight:600;">TTS Active</span>
+            </div>
+          </div>
+          <div class="floating-badge b1">
+            <div class="badge-icon" style="background:#eef1ff;color:var(--primary);"><i class="bi bi-type-bold"></i></div>
+            <span>Font Customised</span>
+          </div>
+          <div class="floating-badge b2">
+            <div class="badge-icon" style="background:#e6faf5;color:var(--accent);"><i class="bi bi-volume-up-fill"></i></div>
+            <span>Text-to-Speech</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats-section">
+  <div class="container">
+    <div class="row g-4 justify-content-center">
+      <div class="col-6 col-md-3 stat-item">
+        <div class="stat-num">15%</div>
+        <div class="stat-label">of people have dyslexia</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item">
+        <div class="stat-num">6+</div>
+        <div class="stat-label">accessibility features</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item">
+        <div class="stat-num">3</div>
+        <div class="stat-label">dyslexia-friendly fonts</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">free to use</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section" id="features">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-badge">Features</span>
+      <h2 class="section-title">Everything you need to read comfortably</h2>
+      <p class="section-sub">Built around the needs of readers with dyslexia, ADHD, and visual stress.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card">
+          <div class="feature-icon purple"><i class="bi bi-type"></i></div>
+          <h5>Dyslexia-Friendly Fonts</h5>
+          <p>Switch between OpenDyslexic, Lexend, and standard fonts with a single click. Each font is designed to reduce reading errors.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card">
+          <div class="feature-icon green"><i class="bi bi-volume-up-fill"></i></div>
+          <h5>Text-to-Speech</h5>
+          <p>Listen to any text read aloud with word-by-word highlighting. Control speed, pause, resume and stop at any time.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card">
+          <div class="feature-icon blue"><i class="bi bi-palette"></i></div>
+          <h5>Colour Overlays</h5>
+          <p>Reduce visual stress with blue, yellow, green or pink tinted overlays ? a proven technique for improving reading comfort.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card">
+          <div class="feature-icon orange"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+          <h5>PDF & TXT Upload</h5>
+          <p>Upload PDF or plain text files and instantly read them in a distraction-free, fully customisable environment.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card">
+          <div class="feature-icon pink"><i class="bi bi-arrows-angle-expand"></i></div>
+          <h5>Text Spacing Controls</h5>
+          <p>Adjust letter spacing, word spacing, line height, and font size precisely to find the combination that works for you.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card">
+          <div class="feature-icon teal"><i class="bi bi-fullscreen"></i></div>
+          <h5>Distraction-Free Mode</h5>
+          <p>Hide all controls and focus purely on the text. Ideal for sustained reading sessions without visual clutter.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container position-relative">
+    <h2>Start reading comfortably today</h2>
+    <p>Create a free account to save your preferences and documents across sessions.</p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="signup.html" class="btn-cta-white">
+        <i class="bi bi-person-plus-fill"></i> Create Free Account
+      </a>
+      <a href="login.html" class="btn-cta-outline">
+        <i class="bi bi-box-arrow-in-right"></i> Login
+      </a>
+    </div>
+    <p class="mt-4" style="font-size:.8rem;color:rgba(255,255,255,.6);">
+      No credit card required &nbsp;?&nbsp; Takes 30 seconds
+    </p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <p>
+      <strong style="color:var(--text-primary);">Dyslexia Helper</strong> &nbsp;?&nbsp;
+      <a href="reader.html">Reader</a> &nbsp;?&nbsp;
+      <a href="login.html">Login</a> &nbsp;?&nbsp;
+      <a href="signup.html">Sign Up</a>
+    </p>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Sticky nav shadow on scroll
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  </script>
+
+<script id="smart-nav">
+(function() {
+  var token = localStorage.getItem('dyslexia_token');
+  var user  = localStorage.getItem('dyslexia_user');
+  var isLoggedIn = !!(token && user);
+
+  // ---- Homepage (index.html) nav ----
+  var navCta = document.querySelector('.d-flex.align-items-center.gap-2');
+  if (navCta) {
+    if (isLoggedIn) {
+      navCta.innerHTML =
+        '<a href="reader.html" class="btn btn-nav-login"><i class="bi bi-book me-1"></i>Reader</a>' +
+        '<a href="dashboard.html" class="btn btn-nav-signup"><i class="bi bi-folder me-1"></i>My Documents</a>';
+    }
+  }
+
+  // ---- Reader / other pages nav (show/hide login|logout|dashboard) ----
+  var loginLink     = document.getElementById('loginLink');
+  var logoutLink    = document.getElementById('logoutLink');
+  var dashboardLink = document.getElementById('dashboardLink');
+
+  if (loginLink || logoutLink || dashboardLink) {
+    if (isLoggedIn) {
+      if (loginLink)     loginLink.style.display     = 'none';
+      if (logoutLink)    logoutLink.style.display     = 'list-item';
+      if (dashboardLink) dashboardLink.style.display  = 'list-item';
+    } else {
+      if (loginLink)     loginLink.style.display     = 'list-item';
+      if (logoutLink)    logoutLink.style.display     = 'none';
+      if (dashboardLink) dashboardLink.style.display  = 'none';
+    }
+  }
+})();
+</script>
+</body>
+</html>
+======================================================================

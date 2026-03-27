@@ -1,0 +1,336 @@
+/* ===================================
+   Custom Fonts
+   =================================== */
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('../assets/fonts/OpenDyslexic-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===================================
+   Global Styles
+   =================================== */
+
+:root {
+  --primary-color: #0d6efd;
+  --secondary-color: #6c757d;
+  --success-color: #198754;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #0dcaf0;
+
+  /* Color overlays */
+  --overlay-blue: rgba(173, 216, 230, 0.2);
+  --overlay-yellow: rgba(255, 255, 224, 0.2);
+  --overlay-green: rgba(144, 238, 144, 0.2);
+  --overlay-pink: rgba(255, 182, 193, 0.2);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* ===================================
+   Reading Area Styles
+   =================================== */
+
+.reading-area {
+  min-height: 600px;
+  background: white;
+  border-radius: 8px;
+}
+
+.text-content {
+  padding: 2rem;
+  line-height: 1.8;
+  font-size: 16px;
+  color: #212529;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Font variations */
+.text-content.font-opendyslexic {
+  font-family: 'OpenDyslexic', sans-serif !important;
+}
+
+.text-content.font-lexend {
+  font-family: 'Lexend', sans-serif !important;
+}
+
+.text-content.font-default {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Color overlays */
+.text-content.overlay-blue::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-blue);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.text-content.overlay-yellow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-yellow);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.text-content.overlay-green::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-green);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.text-content.overlay-pink::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-pink);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.text-content>* {
+  position: relative;
+  z-index: 2;
+}
+
+/* Distraction-free mode */
+body.distraction-free #controlPanel,
+body.distraction-free .navbar,
+body.distraction-free .card-header {
+  display: none !important;
+}
+
+body.distraction-free #mainContainer {
+  margin: 0;
+  padding: 0;
+}
+
+body.distraction-free .reading-area {
+  border-radius: 0;
+  min-height: 100vh;
+  box-shadow: none !important;
+}
+
+body.distraction-free .text-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem;
+}
+
+/* TTS Word Highlighting */
+.tts-highlight {
+  background-color: #ffeaa7;
+  padding: 0 2px;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+  animation: pulse 0.5s;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    background-color: #ffeaa7;
+  }
+
+  50% {
+    background-color: #fdcb6e;
+  }
+}
+
+/* ===================================
+   Control Panel Styles
+   =================================== */
+
+#controlPanel .card {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  /* Full viewport height minus margins */
+}
+
+#controlPanel .card-body {
+  max-height: calc(100vh - 120px);
+  /* Account for header */
+  overflow-y: auto;
+  /* Enable vertical scrolling */
+  overflow-x: hidden;
+  /* Prevent horizontal scroll */
+}
+
+/* Custom scrollbar for control panel */
+#controlPanel .card-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+#controlPanel .card-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+#controlPanel .card-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+#controlPanel .card-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+#controlPanel .form-range::-webkit-slider-thumb {
+  background-color: var(--primary-color);
+}
+
+#controlPanel .form-range::-moz-range-thumb {
+  background-color: var(--primary-color);
+}
+
+/* ===================================
+   Document Cards
+   =================================== */
+
+.document-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.document-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.document-card .card-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* ===================================
+   Responsive Styles
+   =================================== */
+
+@media (max-width: 768px) {
+  #controlPanel {
+    margin-bottom: 1rem;
+  }
+
+  #controlPanel .card {
+    position: static;
+  }
+
+  .text-content {
+    padding: 1rem;
+    font-size: 14px;
+  }
+
+  body.distraction-free .text-content {
+    padding: 1.5rem;
+  }
+}
+
+/* ===================================
+   Loading Spinner
+   =================================== */
+
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* ===================================
+   Accessibility Improvements
+   =================================== */
+
+.btn:focus,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  body {
+    background-color: white;
+  }
+
+  .text-content {
+    color: black;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===================================
+   Print Styles
+   =================================== */
+
+@media print {
+
+  .navbar,
+  #controlPanel,
+  .btn,
+  .modal {
+    display: none !important;
+  }
+
+  .text-content {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  body {
+    background: white;
+  }
+}

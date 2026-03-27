@@ -1,0 +1,19 @@
+Reading is a fundamental skill that opens doors to knowledge and imagination. For people with dyslexia, reading can present unique challenges that affect daily life and learning. However, with the right tools and support, reading can become more accessible and enjoyable.
+
+This application provides various features to help make text easier to read. You can customize fonts specifically designed for dyslexic readers, such as OpenDyslexic and Lexend. These fonts have unique characteristics that help reduce letter confusion and improve reading flow.
+
+Spacing controls allow you to adjust letter spacing, line height, and word spacing to match your personal comfort level. Many dyslexic readers find that increased spacing helps reduce visual crowding and makes text easier to process.
+
+Color overlays are another helpful feature. Some readers find that a subtle tint over white backgrounds reduces glare and eye strain. You can choose from blue, yellow, green, or pink overlays and adjust the opacity to your preference.
+
+The syllable splitting feature breaks words into smaller chunks, which can help with decoding and pronunciation. This feature uses hyphens to show syllable boundaries, making longer words less intimidating.
+
+Text-to-speech functionality allows you to listen to the text while following along visually. The application highlights each word as it's spoken, helping you maintain your place and reinforcing the connection between written and spoken language.
+
+Distraction-free mode removes all interface elements except the text itself, creating a calm, focused reading environment. This can be especially helpful when you need to concentrate on challenging material.
+
+Remember, everyone's reading experience is different. What works for one person may not work for another. Experiment with different combinations of settings to find what helps you read most comfortably and effectively.
+
+Technology continues to evolve, offering new ways to support diverse learning needs. Tools like this represent a commitment to accessibility and the belief that everyone deserves the opportunity to engage with written content in a way that works for them.
+
+Reading doesn't have to be a struggle. With patience, practice, and the right support tools, you can develop your skills and enjoy the many benefits that reading brings to life.

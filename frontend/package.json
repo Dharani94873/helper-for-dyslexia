@@ -1,0 +1,20 @@
+{
+    "name": "dyslexia-helper-frontend",
+    "version": "1.0.0",
+    "description": "Frontend for Accessibility Helper for Dyslexia",
+    "main": "index.html",
+    "scripts": {
+        "serve": "python -m http.server 3000 || php -S localhost:3000 || live-server --port=3000"
+    },
+    "keywords": [
+        "accessibility",
+        "dyslexia",
+        "frontend"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "pdfjs-dist": "^3.11.174"
+    },
+    "devDependencies": {}
+}

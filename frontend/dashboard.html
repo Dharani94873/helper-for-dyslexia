@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Documents - Dyslexia Helper</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Professional White Theme -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+
+  <style id="professional-theme">
+    :root{--primary:#4f6ef7;--primary-dark:#3a56d4;--primary-light:#eef1ff;--accent:#06c090;--accent-dark:#04a07a;--danger:#f04f5f;--warning:#f5a623;--white:#fff;--bg:#f5f7ff;--surface:#fff;--border:#e8eaf0;--border-strong:#d1d5e0;--text-primary:#1a1d2e;--text-secondary:#5a6178;--text-muted:#9299b2;--shadow-xs:0 1px 3px rgba(0,0,0,.05);--shadow-sm:0 2px 8px rgba(0,0,0,.07);--shadow-md:0 4px 20px rgba(0,0,0,.09);--shadow-lg:0 8px 40px rgba(0,0,0,.12);--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:24px;--ease:0.2s cubic-bezier(0.4,0,0.2,1);}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;background-color:var(--bg)!important;color:var(--text-primary)!important;-webkit-font-smoothing:antialiased;}
+    body.bg-light{background:linear-gradient(145deg,#f0f3ff 0%,#fff 55%,#eafaf5 100%)!important;}
+    .navbar,.navbar.navbar-dark.bg-primary{background:var(--white)!important;border-bottom:1px solid var(--border)!important;box-shadow:var(--shadow-xs)!important;padding:.7rem 1.5rem!important;position:sticky!important;top:0;z-index:1030;}
+    .navbar-brand{font-weight:700!important;font-size:1.1rem!important;color:var(--primary)!important;}
+    .navbar-brand i{color:var(--primary)!important;}
+    .navbar-nav .nav-link{color:var(--text-secondary)!important;font-weight:500!important;font-size:.88rem!important;padding:.42rem .85rem!important;border-radius:var(--radius-sm)!important;transition:all var(--ease)!important;}
+    .navbar-nav .nav-link:hover,.navbar-nav .nav-link.active{color:var(--primary)!important;background:var(--primary-light)!important;}
+    .navbar-toggler{border:none!important;} .navbar-toggler:focus{box-shadow:none!important;}
+    .btn-primary{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important;font-weight:600!important;border-radius:var(--radius-sm)!important;box-shadow:0 2px 8px rgba(79,110,247,.28)!important;transition:all var(--ease)!important;}
+    .btn-primary:hover,.btn-primary:focus{background:var(--primary-dark)!important;border-color:var(--primary-dark)!important;color:#fff!important;box-shadow:0 4px 16px rgba(79,110,247,.38)!important;transform:translateY(-1px);}
+    .btn-primary:active{transform:none!important;}
+    .btn-outline-primary{color:var(--primary)!important;border-color:var(--primary)!important;font-weight:500!important;border-radius:var(--radius-sm)!important;transition:all var(--ease)!important;}
+    .btn-outline-primary:hover{background:var(--primary)!important;color:#fff!important;}
+    .btn-success{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;font-weight:600!important;border-radius:var(--radius-sm)!important;transition:all var(--ease)!important;}
+    .btn-success:hover{background:var(--accent-dark)!important;border-color:var(--accent-dark)!important;color:#fff!important;}
+    .btn-outline-success{color:var(--accent)!important;border-color:var(--accent)!important;font-weight:500!important;border-radius:var(--radius-sm)!important;}
+    .btn-outline-success:hover{background:var(--accent)!important;color:#fff!important;}
+    .btn-secondary{background:#f0f2f8!important;border-color:#f0f2f8!important;color:var(--text-secondary)!important;font-weight:500!important;border-radius:var(--radius-sm)!important;}
+    .btn-secondary:hover{background:var(--border)!important;border-color:var(--border)!important;}
+    .btn-danger{background:var(--danger)!important;border-color:var(--danger)!important;border-radius:var(--radius-sm)!important;}
+    .btn-outline-warning{color:var(--warning)!important;border-color:var(--warning)!important;border-radius:var(--radius-sm)!important;}
+    .btn-outline-danger{border-radius:var(--radius-sm)!important;}
+    .card{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:var(--radius-md)!important;box-shadow:var(--shadow-sm)!important;}
+    .card-header{background:#fafbff!important;border-bottom:1px solid var(--border)!important;border-radius:var(--radius-md) var(--radius-md) 0 0!important;padding:.9rem 1.25rem!important;}
+    .card-header.bg-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%)!important;border-bottom:none!important;}
+    .card-header.bg-primary *{color:#fff!important;}
+    .card-header.bg-success{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%)!important;border-bottom:none!important;}
+    .card-header.bg-success *{color:#fff!important;}
+    .card-footer{background:#fafbff!important;border-top:1px solid var(--border)!important;border-radius:0 0 var(--radius-md) var(--radius-md)!important;}
+    .reading-area{background:var(--white)!important;}
+    #emptyState{padding:5rem 2rem!important;}
+    #emptyState .bi.display-1{background:var(--primary-light);color:var(--primary)!important;border-radius:50%;padding:1.4rem;font-size:2.4rem!important;width:96px;height:96px;display:inline-flex!important;align-items:center;justify-content:center;margin-bottom:1.5rem!important;}
+    #emptyState h3{font-weight:700;font-size:1.35rem;color:var(--text-primary);}
+    #emptyState .lead{color:var(--text-secondary);max-width:430px;margin:0 auto 1.5rem;}
+    #controlPanel .card{position:sticky;top:76px;max-height:calc(100vh - 96px);}
+    #controlPanel .card-body{max-height:calc(100vh - 168px)!important;overflow-y:auto!important;}
+    #controlPanel .card-body::-webkit-scrollbar{width:4px;}
+    #controlPanel .card-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px;}
+    #controlPanel h6{font-size:.7rem!important;text-transform:uppercase;letter-spacing:.09em;font-weight:700;color:var(--text-muted)!important;padding-bottom:.55rem!important;margin-bottom:.9rem!important;}
+    .form-label{font-size:.81rem!important;font-weight:600!important;color:var(--text-secondary)!important;}
+    .form-control,.form-select{border:1.5px solid var(--border)!important;border-radius:var(--radius-sm)!important;font-size:.87rem!important;color:var(--text-primary)!important;background-color:var(--white)!important;}
+    .form-control:focus,.form-select:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px rgba(79,110,247,.12)!important;}
+    .input-group-text{background:var(--primary-light)!important;border:1.5px solid var(--border)!important;color:var(--primary)!important;}
+    .form-check-input:checked{background-color:var(--primary)!important;border-color:var(--primary)!important;}
+    .form-check-input:focus{box-shadow:0 0 0 3px rgba(79,110,247,.15)!important;}
+    .document-card{transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease)!important;}
+    .document-card:hover{transform:translateY(-5px)!important;box-shadow:var(--shadow-md)!important;border-color:var(--primary)!important;}
+    .document-card .card-title{font-weight:700!important;color:var(--text-primary)!important;}
+    .document-card .card-text{font-size:.82rem!important;color:var(--text-secondary)!important;line-height:1.85;}
+    .document-card .card-text .bi{color:var(--primary)!important;}
+    body.bg-light .card{border-radius:var(--radius-xl)!important;border:none!important;box-shadow:var(--shadow-lg)!important;overflow:hidden!important;}
+    body.bg-light .card .text-center.mb-4{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%)!important;margin:-2rem -2.5rem 1.5rem!important;padding:2.5rem 2rem 2rem!important;border-radius:0!important;}
+    body.bg-light .card .text-center.mb-4 i{color:rgba(255,255,255,.88)!important;}
+    body.bg-light .card .text-center.mb-4 h2{color:#fff!important;font-weight:700!important;font-size:1.5rem!important;margin-top:.4rem!important;}
+    body.bg-light .card .text-center.mb-4 p{color:rgba(255,255,255,.8)!important;font-size:.88rem!important;}
+    body.bg-light .card .card-body{padding:2rem 2.5rem 2.25rem!important;}
+    body.bg-light .bg-info-subtle{background:#f7f9ff!important;border:1.5px solid var(--border)!important;border-radius:var(--radius-md)!important;box-shadow:none!important;}
+    body.bg-light .bg-info-subtle .card-title{color:var(--primary)!important;font-size:.82rem!important;font-weight:700!important;}
+    body.bg-light .bg-info-subtle p{color:var(--text-secondary)!important;font-size:.83rem!important;}
+    .modal-content{border:none!important;border-radius:var(--radius-lg)!important;box-shadow:var(--shadow-lg)!important;}
+    .modal-header{border-bottom:1px solid var(--border)!important;padding:1.2rem 1.5rem!important;}
+    .modal-title{font-weight:700!important;color:var(--text-primary)!important;}
+    .modal-body{padding:1.5rem!important;}
+    .modal-footer{border-top:1px solid var(--border)!important;padding:1rem 1.5rem!important;}
+    .btn-close:focus{box-shadow:none!important;}
+    .toast{border-radius:var(--radius-md)!important;border:none!important;box-shadow:var(--shadow-md)!important;}
+    .alert-danger{background:#fff0f2!important;color:var(--danger)!important;border:none!important;border-left:3px solid var(--danger)!important;border-radius:var(--radius-sm)!important;}
+    hr{border-color:var(--border)!important;opacity:1!important;}
+    .text-muted{color:var(--text-muted)!important;}
+    .text-primary{color:var(--primary)!important;}
+    a{color:var(--primary);}  a:hover{color:var(--primary-dark);}
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px;}
+    ::-webkit-scrollbar-thumb:hover{background:var(--text-muted);}
+    @media(max-width:768px){#controlPanel .card{position:static!important;max-height:none!important;}#controlPanel .card-body{max-height:none!important;}.navbar{padding:.6rem 1rem!important;}body.bg-light .card .text-center.mb-4{margin:-2rem -1.5rem 1.5rem!important;}body.bg-light .card .card-body{padding:1.5rem!important;}}
+  </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-book-half me-2"></i>
+                Dyslexia Helper
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto"><li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house me-1"></i>Home</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="reader.html">Reader</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="dashboard.html">My Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" id="userEmail"></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logoutBtn">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-folder me-2"></i>My Documents</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        <i class="bi bi-upload me-2"></i>Upload Document
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading documents...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-5" style="display: none;">
+                    <i class="bi bi-file-earmark-text display-1 text-muted"></i>
+                    <h4 class="mt-3">No documents yet</h4>
+                    <p class="text-muted">Upload or paste text to get started</p>
+                    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        <i class="bi bi-upload me-2"></i>Upload Your First Document
+                    </button>
+                </div>
+
+                <!-- Documents List -->
+                <div id="documentsList" class="row g-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Document</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="uploadTitle" class="form-label">Title (optional)</label>
+                        <input type="text" class="form-control" id="uploadTitle" placeholder="My Document">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fileUpload" class="form-label">Select File</label>
+                        <input type="file" class="form-control" id="fileUpload" accept=".txt,.pdf">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmUpload">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">Message here</div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="js/config.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/api.js"></script>
+
+    <script>
+        // Check authentication
+        if (!Storage.getToken()) {
+            window.location.href = 'login.html';
+        }
+
+        const documentsList = document.getElementById('documentsList');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const userEmail = document.getElementById('userEmail');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const confirmUpload = document.getElementById('confirmUpload');
+
+        // Load user profile
+        async function loadProfile() {
+            try {
+                const result = await API.getProfile();
+                if (result.success) {
+                    userEmail.textContent = result.data.user.email;
+                }
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        // Load documents
+        async function loadDocuments() {
+            try {
+                const result = await API.getDocuments();
+
+                loadingState.style.display = 'none';
+
+                if (result.success && result.data.documents.length > 0) {
+                    documentsList.style.display = 'flex';
+                    emptyState.style.display = 'none';
+
+                    documentsList.innerHTML = result.data.documents.map(doc => `
+            <div class="col-md-6 col-lg-4">
+              <div class="card document-card h-100">
+                <div class="card-body">
+                  <h5 class="card-title text-truncate">${doc.title}</h5>
+                  <p class="card-text text-muted small">
+                    <i class="bi bi-calendar me-1"></i>${new Date(doc.uploadDate).toLocaleDateString()}<br>
+                    <i class="bi bi-file-earmark me-1"></i>${doc.fileType.toUpperCase()}<br>
+                    <i class="bi bi-chat-text me-1"></i>${doc.wordCount} words<br>
+                    <i class="bi bi-bookmark me-1"></i>Progress: ${doc.readingProgress}%
+                  </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                  <button class="btn btn-sm btn-primary me-2" onclick="openDocument('${doc._id}')">
+                    <i class="bi bi-eye me-1"></i>Open
+                  </button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteDocument('${doc._id}')">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+                } else {
+                    emptyState.style.display = 'block';
+                    documentsList.style.display = 'none';
+                }
+            } catch (error) {
+                loadingState.style.display = 'none';
+                showToast('Error', 'Failed to load documents', 'danger');
+            }
+        }
+
+        // Open document
+        window.openDocument = function (id) {
+            Storage.setCurrentDocument(id);
+            window.location.href = 'reader.html';
+        };
+
+        // Delete document
+        window.deleteDocument = async function (id) {
+            if (confirm('Are you sure you want to delete this document?')) {
+                try {
+                    await API.deleteDocument(id);
+                    showToast('Success', 'Document deleted', 'success');
+                    loadDocuments();
+                } catch (error) {
+                    showToast('Error', 'Failed to delete document', 'danger');
+                }
+            }
+        };
+
+        // Upload document
+        confirmUpload.addEventListener('click', async () => {
+            const fileInput = document.getElementById('fileUpload');
+            const title = document.getElementById('uploadTitle').value;
+
+            if (!fileInput.files[0]) {
+                showToast('Error', 'Please select a file', 'warning');
+                return;
+            }
+
+            try {
+                confirmUpload.disabled = true;
+                confirmUpload.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+
+                await API.uploadDocument(fileInput.files[0], title);
+
+                bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                showToast('Success', 'Document uploaded successfully', 'success');
+                loadDocuments();
+
+                fileInput.value = '';
+                document.getElementById('uploadTitle').value = '';
+            } catch (error) {
+                showToast('Error', error.message, 'danger');
+            } finally {
+                confirmUpload.disabled = false;
+                confirmUpload.innerHTML = 'Upload';
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            Storage.clearAuth();
+            window.location.href = 'login.html';
+        });
+
+        // Show toast
+        function showToast(title, message, type = 'info') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = `toast bg-${type} text-white`;
+            new bootstrap.Toast(toast).show();
+        }
+
+        // Initialize
+        loadProfile();
+        loadDocuments();
+    </script>
+
+<script id="smart-home-link">
+(function(){
+  var token = localStorage.getItem('dyslexia_token');
+  var user  = localStorage.getItem('dyslexia_user');
+  // Update every link that points to index.html with class "nav-link" (the Home nav item)
+  document.querySelectorAll('a.nav-link[href="index.html"]').forEach(function(a){
+    if(token && user) { a.href = 'user-home.html'; }
+  });
+  // Also update navbar-brand if logged in (brand logo click -> user home)
+  var brand = document.querySelector('a.navbar-brand[href="index.html"]');
+  if(brand && token && user) { brand.href = 'user-home.html'; }
+})();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - Dyslexia Helper</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root{--primary:#4f6ef7;--primary-dark:#3a56d4;--primary-light:#eef1ff;--accent:#06c090;--accent-dark:#04a07a;--danger:#f04f5f;--white:#fff;--bg:#f5f7ff;--surface:#fff;--border:#e8eaf0;--border-strong:#d1d5e0;--text-primary:#1a1d2e;--text-secondary:#5a6178;--text-muted:#9299b2;--shadow-xs:0 1px 3px rgba(0,0,0,.05);--shadow-sm:0 2px 8px rgba(0,0,0,.07);--shadow-md:0 4px 20px rgba(0,0,0,.09);--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--ease:0.2s cubic-bezier(0.4,0,0.2,1);}
+    *{box-sizing:border-box;}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text-primary);-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+    /* Navbar */
+    .uh-nav{background:var(--white);border-bottom:1px solid var(--border);box-shadow:var(--shadow-xs);padding:.7rem 1.5rem;position:sticky;top:0;z-index:1000;}
+    .uh-nav .navbar-brand{font-weight:800;font-size:1.1rem;color:var(--primary)!important;text-decoration:none;}
+    .uh-nav .nav-link{color:var(--text-secondary)!important;font-weight:500;font-size:.88rem;padding:.4rem .85rem!important;border-radius:var(--radius-sm);transition:all var(--ease);}
+    .uh-nav .nav-link:hover,.uh-nav .nav-link.active{color:var(--primary)!important;background:var(--primary-light);}
+    .uh-nav .btn-logout{color:var(--text-muted);font-size:.85rem;font-weight:500;padding:.38rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;transition:all var(--ease);}
+    .uh-nav .btn-logout:hover{border-color:var(--danger);color:var(--danger);}
+    .navbar-toggler{border:none!important;} .navbar-toggler:focus{box-shadow:none!important;}
+    .navbar-toggler-icon{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%235a6178' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")!important;}
+
+    /* Hero greeting */
+    .greeting-section{padding:2.5rem 0 1.5rem;}
+    .time-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--primary-light);color:var(--primary);border-radius:999px;padding:.28rem .85rem;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.9rem;}
+    .greeting-section h1{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:800;letter-spacing:-0.8px;margin-bottom:.4rem;}
+    .greeting-section h1 .name{color:var(--primary);}
+    .greeting-section p.sub{color:var(--text-secondary);font-size:.95rem;margin:0;}
+
+    /* Quick action cards */
+    .qa-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.75rem 1.5rem;text-decoration:none;display:block;transition:all var(--ease);height:100%;}
+    .qa-card:hover{border-color:var(--primary);box-shadow:0 8px 28px rgba(79,110,247,.13);transform:translateY(-4px);}
+    .qa-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.1rem;}
+    .qa-icon.blue{background:#eef1ff;color:var(--primary);}
+    .qa-icon.green{background:#e6faf5;color:var(--accent);}
+    .qa-icon.purple{background:#f0eeff;color:#7c5cfc;}
+    .qa-icon.orange{background:#fff4e6;color:#f59e0b;}
+    .qa-card h5{font-size:.98rem;font-weight:700;color:var(--text-primary);margin-bottom:.35rem;}
+    .qa-card p{font-size:.82rem;color:var(--text-secondary);margin:0;line-height:1.65;}
+    .qa-card .arrow{display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;font-weight:600;color:var(--primary);margin-top:.9rem;opacity:0;transition:opacity var(--ease);}
+    .qa-card:hover .arrow{opacity:1;}
+
+    /* Section title */
+    .section-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:1rem;}
+
+    /* Stats strip */
+    .stats-strip{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.2rem 1.5rem;display:flex;gap:2rem;flex-wrap:wrap;align-items:center;}
+    .stat-item{text-align:center;flex:1;min-width:80px;}
+    .stat-item .val{font-size:1.5rem;font-weight:800;color:var(--primary);letter-spacing:-0.5px;line-height:1;}
+    .stat-item .lbl{font-size:.72rem;color:var(--text-muted);font-weight:500;margin-top:.25rem;}
+
+    /* Recent docs */
+    .doc-row{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;text-decoration:none;transition:all var(--ease);margin-bottom:.6rem;}
+    .doc-row:hover{border-color:var(--primary);box-shadow:var(--shadow-sm);transform:translateX(4px);}
+    .doc-icon{width:40px;height:40px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .doc-info{flex:1;min-width:0;}
+    .doc-info .title{font-weight:600;font-size:.9rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;}
+    .doc-info .meta{font-size:.75rem;color:var(--text-muted);margin-top:.15rem;}
+    .doc-row .open-btn{font-size:.78rem;font-weight:600;color:var(--primary);white-space:nowrap;opacity:0;transition:opacity var(--ease);}
+    .doc-row:hover .open-btn{opacity:1;}
+
+    /* Tip card */
+    .tip-card{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);border-radius:var(--radius-lg);padding:1.75rem;color:#fff;position:relative;overflow:hidden;}
+    .tip-card::after{content:'';position:absolute;bottom:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.07);}
+    .tip-card h6{font-weight:700;font-size:.85rem;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;}
+    .tip-card p{font-size:.9rem;margin:0;opacity:.92;line-height:1.65;}
+
+    /* empty state */
+    .empty-docs{text-align:center;padding:2rem;color:var(--text-muted);}
+    .empty-docs i{font-size:2rem;margin-bottom:.75rem;display:block;opacity:.4;}
+    .empty-docs p{font-size:.85rem;margin:0;}
+
+    @media(max-width:576px){.stats-strip{gap:1rem;} .uh-nav{padding:.6rem 1rem;}}
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg uh-nav">
+  <div class="container">
+    <a class="navbar-brand" href="user-home.html">
+      <i class="bi bi-book-half me-2"></i>Dyslexia Helper
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#uhNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="uhNav">
+      <ul class="navbar-nav me-auto ms-3 gap-1">
+        <li class="nav-item"><a class="nav-link active" href="user-home.html"><i class="bi bi-house me-1"></i>Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="reader.html"><i class="bi bi-book me-1"></i>Reader</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html"><i class="bi bi-folder me-1"></i>My Documents</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-muted me-1" style="font-size:.82rem;" id="navUserName"></span>
+        <button class="btn-logout" id="logoutBtn"><i class="bi bi-box-arrow-right me-1"></i>Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container py-4">
+
+  <!-- Greeting -->
+  <div class="greeting-section">
+    <div id="timeBadge" class="time-badge"><i class="bi bi-sun"></i> Good morning</div>
+    <h1>Welcome back, <span class="name" id="greetName">User</span> ??</h1>
+    <p class="sub">What would you like to do today?</p>
+  </div>
+
+  <!-- Quick Actions -->
+  <p class="section-label">Quick Actions</p>
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <a href="reader.html" class="qa-card">
+        <div class="qa-icon blue"><i class="bi bi-book-open"></i></div>
+        <h5>Open Reader</h5>
+        <p>Read with dyslexia-friendly settings</p>
+        <div class="arrow">Go <i class="bi bi-arrow-right"></i></div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="dashboard.html" class="qa-card">
+        <div class="qa-icon green"><i class="bi bi-folder2-open"></i></div>
+        <h5>My Documents</h5>
+        <p>View & manage your saved files</p>
+        <div class="arrow">View <i class="bi bi-arrow-right"></i></div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="reader.html?action=upload" class="qa-card">
+        <div class="qa-icon purple"><i class="bi bi-upload"></i></div>
+        <h5>Upload File</h5>
+        <p>Upload a PDF or TXT to read now</p>
+        <div class="arrow">Upload <i class="bi bi-arrow-right"></i></div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="reader.html?action=paste" class="qa-card">
+        <div class="qa-icon orange"><i class="bi bi-clipboard-text"></i></div>
+        <h5>Paste Text</h5>
+        <p>Paste any text and start reading</p>
+        <div class="arrow">Paste <i class="bi bi-arrow-right"></i></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left column: Recent docs + stats -->
+    <div class="col-lg-8">
+
+      <!-- Stats -->
+      <p class="section-label">Your Activity</p>
+      <div class="stats-strip mb-4">
+        <div class="stat-item">
+          <div class="val" id="statDocs">?</div>
+          <div class="lbl">Documents</div>
+        </div>
+        <div class="stat-item">
+          <div class="val" id="statReads">0</div>
+          <div class="lbl">Sessions</div>
+        </div>
+        <div class="stat-item">
+          <div class="val" id="statDaysSince">?</div>
+          <div class="lbl">Days active</div>
+        </div>
+        <div class="stat-item" style="flex:2;text-align:left;">
+          <div style="font-size:.82rem;color:var(--text-secondary);">
+            <i class="bi bi-shield-check text-success me-1"></i>
+            Your reading preferences are saved and applied automatically.
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Documents -->
+      <p class="section-label">Recent Documents</p>
+      <div id="recentDocs">
+        <div class="empty-docs" id="docsLoading">
+          <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+          <p>Loading your documents?</p>
+        </div>
+      </div>
+      <a href="dashboard.html" class="text-primary" style="font-size:.82rem;font-weight:600;text-decoration:none;">
+        View all documents <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- Right column: Tips + Info -->
+    <div class="col-lg-4">
+      <p class="section-label">Reading Tip</p>
+      <div class="tip-card mb-3">
+        <h6><i class="bi bi-lightbulb me-1"></i> Tip of the day</h6>
+        <p id="tipText">Try the OpenDyslexic font with a yellow colour overlay ? many readers find this the most comfortable combination for long reading sessions.</p>
+      </div>
+
+      <div class="card" style="border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-xs);">
+        <div class="card-body">
+          <p class="section-label mb-2">Keyboard Shortcuts</p>
+          <div style="font-size:.8rem;line-height:2;color:var(--text-secondary);">
+            <div><kbd style="background:#f0f2f8;border-radius:4px;padding:1px 6px;font-size:.75rem;">Space</kbd> &nbsp;Play / Pause TTS</div>
+            <div><kbd style="background:#f0f2f8;border-radius:4px;padding:1px 6px;font-size:.75rem;">Esc</kbd> &nbsp;Stop TTS</div>
+            <div><kbd style="background:#f0f2f8;border-radius:4px;padding:1px 6px;font-size:.75rem;">Ctrl+S</kbd> &nbsp;Save preferences</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/api.js"></script>
+<script>
+(function() {
+  // Auth guard
+  var token = Storage.getToken();
+  var user  = Storage.getUser();
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Greeting name & nav
+  var firstName = (user.name || user.username || user.email || 'User').split(' ')[0];
+  document.getElementById('greetName').textContent = firstName;
+  document.getElementById('navUserName').textContent = firstName;
+
+  // Time-based greeting
+  var h = new Date().getHours();
+  var greeter = document.getElementById('timeBadge');
+  if (h < 12)      greeter.innerHTML = '<i class="bi bi-sun"></i> Good morning';
+  else if (h < 17) greeter.innerHTML = '<i class="bi bi-brightness-high"></i> Good afternoon';
+  else             greeter.innerHTML = '<i class="bi bi-moon-stars"></i> Good evening';
+
+  // Tips rotation
+  var tips = [
+    'Try the OpenDyslexic font with a yellow colour overlay ? many readers find this the most comfortable combination.',
+    'Increase letter spacing to 2-4px to make individual words stand out more clearly on the page.',
+    'Use Text-to-Speech while reading along ? this dual-channel approach can greatly improve comprehension.',
+    'Enable Distraction-Free Mode when reading long passages to remove visual clutter.',
+    'Adjust line height to 1.8?2.0 for more breathing room between lines.',
+  ];
+  document.getElementById('tipText').textContent = tips[Math.floor(Math.random() * tips.length)];
+
+  // Days active (based on account creation or first session)
+  var firstSeen = localStorage.getItem('dyslexia_first_seen');
+  if (!firstSeen) { firstSeen = Date.now().toString(); localStorage.setItem('dyslexia_first_seen', firstSeen); }
+  var days = Math.max(1, Math.floor((Date.now() - parseInt(firstSeen)) / 86400000));
+  document.getElementById('statDaysSince').textContent = days;
+
+  // Session counter
+  var sessions = parseInt(localStorage.getItem('dyslexia_sessions') || '0') + 1;
+  localStorage.setItem('dyslexia_sessions', sessions);
+  document.getElementById('statReads').textContent = sessions;
+
+  // Load recent documents
+  async function loadRecentDocs() {
+    var container = document.getElementById('recentDocs');
+    try {
+      var result = await API.getDocuments();
+      var docs = (result.success && result.data && result.data.documents) ? result.data.documents : [];
+      document.getElementById('statDocs').textContent = docs.length;
+      if (docs.length === 0) {
+        container.innerHTML = '<div class="empty-docs"><i class="bi bi-folder2"></i><p>No documents yet. Upload or paste text in the Reader!</p></div>';
+        return;
+      }
+      var recent = docs.slice(0, 5);
+      container.innerHTML = recent.map(function(d) {
+        var isPdf = d.type === 'pdf';
+        var date  = new Date(d.createdAt || d.uploadedAt || Date.now()).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+        return '<a href="reader.html" class="doc-row" data-id="'+d._id+'" onclick="openDoc(\''+d._id+'\')">' +
+          '<div class="doc-icon"><i class="bi bi-file-earmark-'+(isPdf?'pdf':'text')+'"></i></div>' +
+          '<div class="doc-info"><p class="title">'+(d.title||'Untitled')+'</p><div class="meta"><i class="bi bi-clock me-1"></i>'+date+'</div></div>' +
+          '<span class="open-btn">Open <i class="bi bi-arrow-right"></i></span>' +
+        '</a>';
+      }).join('');
+    } catch(e) {
+      document.getElementById('statDocs').textContent = '?';
+      container.innerHTML = '<div class="empty-docs"><i class="bi bi-folder2"></i><p>Could not load documents. Make sure the backend is running.</p></div>';
+    }
+  }
+
+  window.openDoc = function(id) {
+    Storage.setCurrentDocument(id);
+  };
+
+  loadRecentDocs();
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', function() {
+    Storage.clearAuth();
+    window.location.href = 'login.html';
+  });
+})();
+</script>
+</body>
+</html>
